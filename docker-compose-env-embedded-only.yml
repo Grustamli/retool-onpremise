@@ -1,31 +1,30 @@
-version: "2"
 services:
   api:
     build:
       context: ./
       dockerfile: Dockerfile
     environment:
-      - DEPLOYMENT_TEMPLATE_TYPE=docker-compose
-      - SERVICE_TYPE=MAIN_BACKEND,DB_CONNECTOR,DB_SSH_CONNECTOR
-      - DBCONNECTOR_POSTGRES_POOL_MAX_SIZE=100
-      - DBCONNECTOR_QUERY_TIMEOUT_MS=120000
-      - WORKFLOW_BACKEND_HOST=http://workflows-backend:3000
-      - CODE_EXECUTOR_INGRESS_DOMAIN=http://code-executor:3004
-      - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
-      - POSTGRES_DB=hammerhead_production
-      - POSTGRES_USER=retool_internal_user
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - RETOOLDB_POSTGRES_DB=postgres
-      - RETOOLDB_POSTGRES_USER=root
-      - RETOOLDB_POSTGRES_HOST=retooldb-postgres
-      - RETOOLDB_POSTGRES_PORT=5432
-      - RETOOLDB_POSTGRES_PASSWORD=${RETOOLDB_POSTGRES_PASSWORD}
-      - DOMAINS=${HOSTNAME} -> http://api:3000
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - LICENSE_KEY=EXPIRED-LICENSE-KEY-TRIAL
+      DEPLOYMENT_TEMPLATE_TYPE: docker-compose
+      SERVICE_TYPE: MAIN_BACKEND,DB_CONNECTOR,DB_SSH_CONNECTOR
+      DBCONNECTOR_POSTGRES_POOL_MAX_SIZE: 100
+      DBCONNECTOR_QUERY_TIMEOUT_MS: 120000
+      WORKFLOW_BACKEND_HOST: http://workflows-backend:3000
+      CODE_EXECUTOR_INGRESS_DOMAIN: http://code-executor:3004
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET}
+      POSTGRES_DB: hammerhead_production
+      POSTGRES_USER: retool_internal_user
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RETOOLDB_POSTGRES_DB: postgres
+      RETOOLDB_POSTGRES_USER: root
+      RETOOLDB_POSTGRES_HOST: retooldb-postgres
+      RETOOLDB_POSTGRES_PORT: 5432
+      RETOOLDB_POSTGRES_PASSWORD: ${RETOOLDB_POSTGRES_PASSWORD}
+      DOMAINS: ${HOSTNAME} -> http://api:3000
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      LICENSE_KEY: EXPIRED-LICENSE-KEY-TRIAL
     networks:
       - frontend-network
       - backend-network
@@ -37,8 +36,6 @@ services:
       - workflows-worker
       - code-executor
     command: bash -c "./docker_scripts/wait-for-it.sh postgres:5432; ./docker_scripts/start_api.sh"
-    links:
-      - postgres
     ports:
       - "3000:3000"
     restart: on-failure
@@ -47,22 +44,20 @@ services:
       - ./keys:/retool_backend/keys
       - ssh:/retool_backend/autogen_ssh_keys
       - ./retool:/usr/local/retool-git-repo
-      - ${BOOTSTRAP_SOURCE:-./retool}:/usr/local/retool-repo
+      - "${BOOTSTRAP_SOURCE:-./retool}:/usr/local/retool-repo"
 
   jobs-runner:
     build:
       context: ./
       dockerfile: Dockerfile
     environment:
-      - DEPLOYMENT_TEMPLATE_TYPE=docker-compose
-      - SERVICE_TYPE=JOBS_RUNNER
+      DEPLOYMENT_TEMPLATE_TYPE: docker-compose
+      SERVICE_TYPE: JOBS_RUNNER
     networks:
       - backend-network
     depends_on:
       - postgres
     command: bash -c "chmod -R +x ./docker_scripts; sync; ./docker_scripts/wait-for-it.sh postgres:5432; ./docker_scripts/start_api.sh"
-    links:
-      - postgres
     volumes:
       - ./keys:/root/.ssh
 
@@ -72,12 +67,12 @@ services:
       dockerfile: Dockerfile
     command: bash -c "./docker_scripts/wait-for-it.sh postgres:5432; ./docker_scripts/start_api.sh"
     environment:
-      - DEPLOYMENT_TEMPLATE_TYPE=docker-compose
-      - SERVICE_TYPE=WORKFLOW_TEMPORAL_WORKER
-      - NODE_OPTIONS=--max_old_space_size=1024
-      - DISABLE_DATABASE_MIGRATIONS=true
-      - WORKFLOW_BACKEND_HOST=http://workflows-backend:3000
-      - CODE_EXECUTOR_INGRESS_DOMAIN=http://code-executor:3004
+      DEPLOYMENT_TEMPLATE_TYPE: docker-compose
+      SERVICE_TYPE: WORKFLOW_TEMPORAL_WORKER
+      NODE_OPTIONS: --max_old_space_size=1024
+      DISABLE_DATABASE_MIGRATIONS: true
+      WORKFLOW_BACKEND_HOST: http://workflows-backend:3000
+      CODE_EXECUTOR_INGRESS_DOMAIN: http://code-executor:3004
     networks:
       - backend-network
       - code-executor-network
@@ -88,12 +83,12 @@ services:
       context: ./
       dockerfile: Dockerfile
     environment:
-      - DEPLOYMENT_TEMPLATE_TYPE=docker-compose
-      - SERVICE_TYPE=WORKFLOW_BACKEND,DB_CONNECTOR,DB_SSH_CONNECTOR
-      - WORKFLOW_BACKEND_HOST=http://workflows-backend:3000
-      - CODE_EXECUTOR_INGRESS_DOMAIN=http://code-executor:3004
-      - DBCONNECTOR_POSTGRES_POOL_MAX_SIZE=100
-      - DBCONNECTOR_QUERY_TIMEOUT_MS=120000
+      DEPLOYMENT_TEMPLATE_TYPE: docker-compose
+      SERVICE_TYPE: WORKFLOW_BACKEND,DB_CONNECTOR,DB_SSH_CONNECTOR
+      WORKFLOW_BACKEND_HOST: http://workflows-backend:3000
+      CODE_EXECUTOR_INGRESS_DOMAIN: http://code-executor:3004
+      DBCONNECTOR_POSTGRES_POOL_MAX_SIZE: 100
+      DBCONNECTOR_QUERY_TIMEOUT_MS: 120000
     networks:
       - backend-network
       - code-executor-network
@@ -103,8 +98,6 @@ services:
       - workflows-worker
       - code-executor
     command: bash -c "./docker_scripts/wait-for-it.sh postgres:5432; ./docker_scripts/start_api.sh"
-    links:
-      - postgres
     restart: on-failure
     volumes:
       - ./keys:/root/.ssh
@@ -119,8 +112,8 @@ services:
       dockerfile: CodeExecutor.Dockerfile
     command: bash -c "./start.sh"
     environment:
-      - DEPLOYMENT_TEMPLATE_TYPE=docker-compose
-      - NODE_OPTIONS=--max_old_space_size=1024
+      DEPLOYMENT_TEMPLATE_TYPE: docker-compose
+      NODE_OPTIONS: --max_old_space_size=1024
     networks:
       - code-executor-network
     privileged: true
